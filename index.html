@@ -599,7 +599,7 @@ function showOverlay(html) {
 }
 
 // ─── STEPPER ─────────────────────────────────────────────────────────────────
-const stepLimits = { numTeams:[2,8], purse:[500,2000], maxSquad:[15,30] };
+const stepLimits = { numTeams:[2,8], purse:[500,12000], maxSquad:[15,30] };
 function step(key, delta) {
   const [mn,mx] = stepLimits[key];
   state.stepVals[key] = Math.min(mx, Math.max(mn, state.stepVals[key] + delta));
@@ -626,9 +626,7 @@ function createRoom() {
   };
   if (!state.room.pools.length) { toast("Select at least one pool","error"); return; }
   state.roomCode = gc();
-  state.teams = BOT_NAMES.slice(0, Math.min(3, state.room.numTeams - 1)).map((name,i) => ({
-    id: "bot_"+i, name, purse: state.room.purse, players: [], isBot: true
-  }));
+  
   state.myTeamId = null;
   document.getElementById("room-badge").textContent = state.roomCode;
   document.getElementById("room-badge").style.display = "block";
