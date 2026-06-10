@@ -295,10 +295,12 @@
       <label class="card-label">Room Name</label>
       <input class="text-input" id="room-name" value="IPL Fantasy Auction 2025">
     </div>
+   <!--
     <div class="card">
       <label class="card-label">Your Team Name (Host)</label>
       <input class="text-input" id="host-team-name-create" placeholder="E.g., Punjab Kings" value="">
     </div>
+   -->
     <div class="card">
       <div class="card-title">Settings</div>
       <div class="stepper-grid">
@@ -419,7 +421,7 @@
       <div class="bid-top">
         <div class="timer-box" id="timer-box">
           <div class="timer-label" id="timer-label" style="color:#10b981">TIME</div>
-          <div class="timer-num" id="timer-num" style="color:#10b981">15</div>
+          <div class="timer-num" id="timer-num" style="color:#10b981">60</div>
           <div class="timer-sub">secs</div>
         </div>
         <div class="bid-box">
@@ -784,7 +786,7 @@ function getShareableState() {
   return { room: state.room, teams: state.teams, roomCode: state.roomCode, status: state.status, cp: state.cp, bid: state.bid, bidder: state.bidder, timer: state.timer, queue: state.queue, log: state.log, soldResults: state.soldResults, unsoldPlayers: state.unsoldPlayers };
 }
 function applyFullState(s) {
-  state.room = s.room || state.room; state.teams = s.teams || state.teams; state.roomCode = s.roomCode || state.roomCode; state.status = s.status || state.status; state.cp = s.cp || null; state.bid = s.bid || 0; state.bidder = s.bidder || null; state.timer = s.timer || 15; state.queue = s.queue || []; state.log = s.log || []; state.soldResults = s.soldResults || []; state.unsoldPlayers = s.unsoldPlayers || [];
+  state.room = s.room || state.room; state.teams = s.teams || state.teams; state.roomCode = s.roomCode || state.roomCode; state.status = s.status || state.status; state.cp = s.cp || null; state.bid = s.bid || 0; state.bidder = s.bidder || null; state.timer = s.timer || 60; state.queue = s.queue || []; state.log = s.log || []; state.soldResults = s.soldResults || []; state.unsoldPlayers = s.unsoldPlayers || [];
 }
 function applyAuctionState(s) { state.cp = s.cp; state.bid = s.bid; state.bidder = s.bidder; state.timer = s.timer; state.queue = s.queue; state.status = "bidding"; }
 
@@ -811,20 +813,14 @@ function getSelectedPools() { return ["A","B","C","D"].filter(p => document.quer
    CREATE ROOM (HOST)
 ═══════════════════════════════════════════════════════════════════════════ */
 function createRoom() {
-  const hostName = document.getElementById("host-team-name-create").value.trim();
-  if (!hostName) { toast("Please enter your Team Name", "error"); return; }
   const pools = getSelectedPools();
   if (!pools.length) { toast("Select at least one pool","error"); return; }
   
   state.isHost = true;
   state.room = { roomName: document.getElementById("room-name").value || "IPL Auction 2025", numTeams: state.stepVals.numTeams, purse: state.stepVals.purse, maxSquad: state.stepVals.maxSquad, pools };
   state.roomCode = Math.random().toString(36).substr(2,6).toUpperCase();
-  state.teams = [];
-  
-  // Auto-join Host
-  const id = "host_" + Date.now();
-  state.myTeamId = id;
-  state.teams.push({ id, name: hostName, purse: state.room.purse, players: [], isBot: false });
+  state.teams = []; // Starts completely empty for incoming guests/bots
+  state.myTeamId = null; // Ensuring host has no betting team assigned
 
   document.getElementById("room-badge").textContent = state.roomCode;
   document.getElementById("room-badge").style.display = "block";
@@ -923,7 +919,7 @@ function launchAuctionScreen() {
 ═══════════════════════════════════════════════════════════════════════════ */
 function nextPlayer() {
   clearTimers(); if (!state.queue.length) { endAuction(); return; }
-  state.cp = state.queue.shift(); state.bid = state.cp.basePrice; state.bidder = null; state.timer = 15; state.status = "bidding";
+  state.cp = state.queue.shift(); state.bid = state.cp.basePrice; state.bidder = null; state.timer = 60; state.status = "bidding";
   renderPlayerCard(); renderBidArea(); renderTeamsPanel(); renderQueueBar(); startTimer();
   if (state.isHost) { startBots(); hostBroadcast("NEXT_PLAYER", { cp: state.cp, bid: state.bid, bidder: state.bidder, timer: state.timer, queue: state.queue }); }
   addLog("📋 Up: " + state.cp.name + " (" + state.cp.role + ") · Base: " + fp(state.cp.basePrice), "#60a5fa");
@@ -940,7 +936,7 @@ function startTimerGuest() {
 }
 function updateTimer() {
   const n = document.getElementById("timer-num"); const l = document.getElementById("timer-label"); const b = document.getElementById("timer-box"); if (!n) return;
-  const c = state.timer <= 5 ? "#ef4444" : state.timer <= 10 ? "#f59e0b" : "#10b981"; n.textContent = state.timer; n.style.color = c; l.style.color = c; b.style.borderColor = c;
+  const c = state.timer <= 10 ? "#ef4444" : state.timer <= 20 ? "#f59e0b" : "#10b981"; n.textContent = state.timer; n.style.color = c; l.style.color = c; b.style.borderColor = c;
 }
 function clearTimers() { clearInterval(state.timerInterval); clearInterval(state.botInterval); }
 
