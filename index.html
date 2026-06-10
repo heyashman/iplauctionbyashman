@@ -606,7 +606,7 @@ let state = {
   roomCode: null,
   room: { roomName:"IPL Fantasy Auction 2025", numTeams:4, purse:12000, maxSquad:25, pools:["A","B","C","D"] },
   teams: [],
-  queue: [], cp: null, bid: 0, bidder: null, timer: 15,
+  queue: [], cp: null, bid: 0, bidder: null, timer: 60,
   timerInterval: null, botInterval: null, status: "idle", log: [], soldResults: [], unsoldPlayers: [],
   stepVals: { numTeams:4, purse:12000, maxSquad:25 },
   peer: null, hostConn: null, guestConns: [],
@@ -802,7 +802,7 @@ function copyCode() { navigator.clipboard.writeText(state.roomCode).then(() => t
 /* ═══════════════════════════════════════════════════════════════════════════
    STEPPER / POOL CONFIG
 ═══════════════════════════════════════════════════════════════════════════ */
-const stepLimits = { numTeams:[2,8], purse:[500,2000], maxSquad:[15,30] };
+const stepLimits = { numTeams:[2,8], purse:[500,12000], maxSquad:[15,30] };
 function step(key, delta) { const [mn,mx] = stepLimits[key]; state.stepVals[key] = Math.min(mx, Math.max(mn, state.stepVals[key] + delta)); const el = document.getElementById("val-" + key); el.textContent = key === "purse" ? fp(state.stepVals[key]) : state.stepVals[key]; }
 function togglePool(p) { const btn = document.querySelector('[data-pool="'+p+'"]'); btn.className = btn.classList.contains("active-"+p) ? "pool-btn" : "pool-btn active-"+p; }
 function getSelectedPools() { return ["A","B","C","D"].filter(p => document.querySelector('[data-pool="'+p+'"]').classList.contains("active-"+p)); }
